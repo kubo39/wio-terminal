@@ -7,7 +7,6 @@ build:
 		-mtriple=thumbv7em-none-unknown-gnueabihf \
 		-betterC \
 		--boundscheck=off \
-		-defaultlib= \
 		-relocation-model=static \
 		-Os \
 		-c \
