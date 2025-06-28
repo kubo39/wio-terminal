@@ -25,7 +25,7 @@ build:
 まずLDCのオプションからみていく
 
 - mtriple=thumbv7em-none-unknown-gnueabihf
-　- ターゲットトリプル指定。cortexm4fなのでthumbv7emとgnueabihf指定。
+  - ターゲットトリプル指定。cortexm4fなのでthumbv7emとgnueabihf指定。
 - betterC
   - GC/例外/実行時型情報などのランタイムが必要となるコードを生成しない
   - `-fno-moduleinfo`と`-defaultlib=`相当も兼ねる
@@ -48,7 +48,6 @@ build:
   - C標準ライブラリとリンクしないように
 - -o blinky.elf
   - 生成するファイル名を指定
-
 
 実際にはWio Terminalに書き込む際にはelfではなくhf2というフォーマットに変換する。
 
