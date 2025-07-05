@@ -45,7 +45,13 @@ struct GpioPin
 
 GpioPin* getGpioPin()
 {
-    static gpioPin = GpioPin();
+    __gshared bool flag;
+    __gshared GpioPin gpioPin;
+    if (!flag)
+    {
+        gpioPin = GpioPin();
+        flag = true;
+    }
     return &gpioPin;
 }
 
@@ -100,7 +106,7 @@ struct GpioPin(T)
 
 void main()
 {
-    static pin = Pin();
+    __gshared pin = Pin();
     auto uninitPin = GpioPin!(Uninitialized)(&pin);
     // uninitPin.setHigh(); /* compile error */
     auto outputPin = uninitPin.pushPullOutput();
@@ -118,6 +124,7 @@ private struct PushPullOutput {}
 
 struct Pin
 {
+    uint* address;
     @disable this(this);
 }
 
@@ -134,9 +141,16 @@ struct GpioPin(T)
 
     static if (is(T == Uninitialized))
     {
-        GpioPin!(PushPullOutput) pushPullOutput()
+        GpioPin!PushPullOutput* pushPullOutput()
         {
-            return GpioPin!(PushPullOutput)(this.pin);
+            __gshared bool flag;
+            __gshared GpioPin!PushPullOutput gpioPin;
+            if (!flag)
+            {
+                gpioPin = GpioPin!PushPullOutput(this.pin);
+                flag = true;
+            }
+            return &gpioPin;
         }
     }
 
@@ -145,6 +159,18 @@ struct GpioPin(T)
         void setHigh() { }
         void setLow() { }
     }
+}
+
+Pin* getRawPin(uint* address)
+{
+    __gshared bool flag;
+    __gshared Pin pin;
+    if (!flag)
+    {
+        pin = Pin(address);
+        flag = true;
+    }
+    return &pin;
 }
 
 GpioPin!Uninitialized* getGpioPin(Pin* pin)
@@ -156,8 +182,9 @@ GpioPin!Uninitialized* getGpioPin(Pin* pin)
 
 void main()
 {
-    static pin = Pin();
-    auto uninitPin = getGpioPin(&pin);
+    auto address = cast(uint*) 0x4100_8000;
+    auto pin = getRawPin(address);
+    auto uninitPin = getGpioPin(pin);
     // uninitPin.setHigh(); /* compile error */
     auto outputPin = uninitPin.pushPullOutput();
     outputPin.setHigh();
