@@ -36,10 +36,15 @@ struct GpioA15Pin(T)
     {
         GpioA15Pin!(PushPullOutput)* pushPullOutput()
         {
-            // Set pin configuration
-            *(cast(uint*) PA_DIRSET) = 1 << PA_BIT_LED;
-            __gshared static GpioA15Pin!PushPullOutput pin;
-            pin = GpioA15Pin!PushPullOutput();
+            __gshared bool flag;
+            __gshared GpioA15Pin!PushPullOutput pin;
+            if (!flag)
+            {
+                // Set pin configuration
+                *(cast(uint*) PA_DIRSET) = 1 << PA_BIT_LED;
+                pin = GpioA15Pin!PushPullOutput();
+                flag = true;
+            }
             return &pin;
         }
     }
@@ -60,8 +65,13 @@ struct GpioA15Pin(T)
 
 GpioA15Pin!Uninitialized* getGpioA15Pin()
 {
-    __gshared static GpioA15Pin!Uninitialized uninitPin;
-    uninitPin = GpioA15Pin!Uninitialized();
+    __gshared bool flag;
+    __gshared GpioA15Pin!Uninitialized uninitPin;
+    if (!flag)
+    {
+        uninitPin = GpioA15Pin!Uninitialized();
+        flag = true;
+    }
     return &uninitPin;
 }
 
