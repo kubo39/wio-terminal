@@ -6,6 +6,28 @@ extern(C):
 nothrow:
 @system:
 
+/**
+volatileLoad/volatileStore intrinsic.
+ */
+pragma(LDC_intrinsic, "ldc.bitop.vld")
+    ubyte volatileLoad(ubyte* ptr);
+pragma(LDC_intrinsic, "ldc.bitop.vld")
+    ushort volatileLoad(ushort* ptr);
+pragma(LDC_intrinsic, "ldc.bitop.vld")
+    uint volatileLoad(uint* ptr);
+pragma(LDC_intrinsic, "ldc.bitop.vld")
+    ulong volatileLoad(ulong* ptr);
+
+pragma(LDC_intrinsic, "ldc.bitop.vst")
+    void volatileStore(ubyte* ptr, ubyte value);
+pragma(LDC_intrinsic, "ldc.bitop.vst")
+    void volatileStore(ushort* ptr, ushort value);
+pragma(LDC_intrinsic, "ldc.bitop.vst")
+    void volatileStore(uint* ptr, uint value);
+pragma(LDC_intrinsic, "ldc.bitop.vst")
+    void volatileStore(ulong* ptr, ulong value);
+
+
 __gshared @section(".isr_vector._reset") typeof(&resetHandler) _reset = &resetHandler;
 
 /* register addresses */
@@ -41,7 +63,7 @@ struct GpioA15Pin(T)
             if (!flag)
             {
                 // Set pin configuration
-                *(cast(uint*) PA_DIRSET) = 1 << PA_BIT_LED;
+                volatileStore(cast(uint*) PA_DIRSET, 1 << PA_BIT_LED);
                 pin = GpioA15Pin!PushPullOutput();
                 flag = true;
             }
@@ -53,12 +75,12 @@ struct GpioA15Pin(T)
     {
         void setHigh()
         {
-            *(cast(uint*) PA_OUTSET) = 1 << PA_BIT_LED;
+            volatileStore(cast(uint*) PA_OUTSET, 1 << PA_BIT_LED);
         }
 
         void setLow()
         {
-            *(cast(uint*) PA_OUTCLR) = 1 << PA_BIT_LED;
+            volatileStore(cast(uint*) PA_OUTCLR, 1 << PA_BIT_LED);
         }
     }
 }
@@ -102,15 +124,16 @@ public:
 noreturn main()
 {
     // Set pin configuration
-    *(cast(uint*) PC_DIRCLR) = 1 << PC_BIT_BUTTON1;
-    *(cast(uint*) PC_PINCFG26) |= 1 << 1;
+    volatileStore(cast(uint*) PC_DIRCLR, 1 << PC_BIT_BUTTON1);
+    auto initialPinCfg26 = volatileLoad(cast(uint*) PC_PINCFG26);
+    volatileStore(cast(uint*) PC_PINCFG26, initialPinCfg26 | (1 << 1));
 
     auto pin = getGpioA15Pin();
     auto led = Led(pin);
 
     while (true)
     {
-        const button1Input = *(cast(uint*)PC_IN) & (1 << PC_BIT_BUTTON1);
+        const button1Input = volatileLoad(cast(uint*) PC_IN) & (1 << PC_BIT_BUTTON1);
         if (button1Input > 0)
         {
             led.turnOn();
